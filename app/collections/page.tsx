@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { NeoCardPublicShowcase } from "@/components/neo-card/neo-card-public-showcase";
-import { Footer } from "@/components/landing/footer";
-
 export const metadata: Metadata = {
-  title: "Collections — NEO ID",
+  title: "Collections",
   description:
     "Explore our premium NFC card collection. Classic PVC, Artisan wood, and Prestige metal. Every card ships with NFC and QR code.",
 };
@@ -59,7 +57,6 @@ export default async function CollectionsPage() {
         materials={serializedMaterials}
         templates={serializedTemplates}
       />
-      <Footer />
     </>
   );
 }

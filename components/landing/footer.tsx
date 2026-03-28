@@ -60,7 +60,7 @@ export function Footer() {
       </div>
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col items-center gap-10 py-12 md:py-16">
+        <div className="flex flex-col items-center gap-8 py-12 md:py-16">
 
           <div className="flex items-center gap-12">
             <div className="flex items-center gap-8">
@@ -138,14 +138,38 @@ export function Footer() {
             </div>
           </div>
 
-          <div className="flex flex-col items-center gap-2">
-            <div className="h-px w-16 bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
-            <p className="text-[10px] tracking-wider text-muted-foreground/25 uppercase">
-              A product by{" "}
-              <span className="text-muted-foreground/40 transition-colors duration-300 hover:text-neo-teal">
-                Taqneo Team
-              </span>
-            </p>
+          <div className="w-full space-y-2">
+            <div className="h-px w-1/2  mx-auto bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
+            <div className="flex items-center justify-center gap-10">
+              <p className="text-[10px] tracking-wider text-muted-foreground/25 uppercase">
+                A product by{" "}
+                <span className="text-muted-foreground/40 transition-colors duration-300 hover:text-neo-teal">
+                  Taqneo Team
+                </span>
+              </p>
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/terms"
+                  className="text-[10px] tracking-wider text-muted-foreground/30 uppercase transition-colors duration-300 hover:text-neo-teal"
+                >
+                  Terms
+                </Link>
+                <div className="h-2.5 w-px bg-gradient-to-b from-transparent via-neo-teal/20 to-transparent" />
+                <Link
+                  href="/privacy"
+                  className="text-[10px] tracking-wider text-muted-foreground/30 uppercase transition-colors duration-300 hover:text-neo-teal"
+                >
+                  Privacy
+                </Link>
+                <div className="h-2.5 w-px bg-gradient-to-b from-transparent via-neo-teal/20 to-transparent" />
+                <Link
+                  href="/site-map"
+                  className="text-[10px] tracking-wider text-muted-foreground/30 uppercase transition-colors duration-300 hover:text-neo-teal"
+                >
+                  Sitemap
+                </Link>
+              </div>
+            </div>
           </div>
 
         </div>
