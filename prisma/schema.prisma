@@ -1,0 +1,368 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────
+
+enum UserRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum AccountType {
+  COMPANY
+  INDIVIDUAL
+}
+
+enum CardType {
+  PLASTIC
+  WOOD
+  METAL
+}
+
+enum CardStatus {
+  PENDING
+  PRINTING
+  SHIPPED
+  DELIVERED
+  ACTIVE
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  SHIPPED
+  DELIVERED
+}
+
+enum TemplateTier {
+  FREE
+  PREMIUM
+  CUSTOM
+}
+
+enum PlanTier {
+  STARTUP
+  BUSINESS
+  ENTERPRISE
+  PRO
+}
+
+enum CardRequestStatus {
+  PENDING
+  APPROVED
+  ORDERED
+  REJECTED
+  CANCELLED
+}
+
+// ─── Models ──────────────────────────────────────────────
+
+model User {
+  id          String      @id @default(cuid())
+  kindeId     String      @unique
+  email       String      @unique
+  phone       String?
+  name        String
+  nameAr      String?
+  avatarUrl   String?
+  role        UserRole    @default(MEMBER)
+  accountType AccountType @default(INDIVIDUAL)
+  onboarded   Boolean     @default(false)
+
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id])
+
+  planId String? // Individual plan (null = free tier; company users use company.planId)
+  plan   Plan?   @relation(fields: [planId], references: [id])
+
+  paypalSubscriptionId String? // Active PayPal subscription ID
+  subscriptionEndsAt   DateTime? // When the current billing period ends
+
+  profiles     Profile[]
+  orders       Order[]
+  cardRequests CardRequest[]
+
+  invitesCreated Invite[] @relation("InviteCreator")
+  invitesUsed    Invite[] @relation("InviteUsed")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([kindeId])
+  @@index([planId])
+}
+
+model Company {
+  id          String  @id @default(cuid())
+  nameEn      String
+  nameAr      String?
+  crNumber    String?
+  logo        String?
+  brandColors Json?
+  website     String?
+
+  planId   String?
+  plan     Plan?   @relation(fields: [planId], references: [id])
+  maxSeats Int     @default(5)
+
+  paypalSubscriptionId String? // Active PayPal subscription ID
+  subscriptionEndsAt   DateTime? // When the current billing period ends
+
+  employees    User[]
+  templates    Template[]
+  invites      Invite[]
+  cardRequests CardRequest[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([planId])
+}
+
+model Plan {
+  id       String   @id @default(cuid())
+  tier     PlanTier @unique
+  name     String
+  price    Decimal  @db.Decimal(10, 2) // Yearly price in SAR (all plans yearly-only)
+  currency String   @default("SAR")
+  maxSeats Int      @default(5)
+
+  maxProfilesPerSeat Int     @default(1) // NEO IDs allowed per seat (0 = unlimited)
+  includesPlasticCard Boolean @default(false) // Whether 1 plastic card per seat is included
+
+  features      Json?
+  stripePriceId String? // Stripe yearly price ID
+  paypalPlanId  String? // PayPal billing plan ID
+
+  companies Company[]
+  users     User[] // Individual plan subscribers
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Profile {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  name        String?
+  title       String?
+  bio         String?
+  avatarUrl   String?
+  coverUrl    String?
+  templateId  String?
+  template    Template? @relation(fields: [templateId], references: [id])
+  cardDesign  Json?
+  socialLinks Json?
+  contactInfo Json?
+  isPublished   Boolean @default(false)
+  isPlaceholder Boolean @default(false) // Pre-ordered empty seat, not yet assigned to employee
+  qrCodeUrl     String?
+  views         Int     @default(0)
+  taps          Int     @default(0)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  cards       Card[]
+  cardRequest CardRequest?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([templateId])
+}
+
+model Template {
+  id        String       @id @default(cuid())
+  name      String
+  slug      String       @unique
+  thumbnail String
+  designData Json
+  tier      TemplateTier @default(FREE)
+  price     Decimal?     @db.Decimal(10, 2)
+
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id])
+
+  variants     TemplateVariant[]
+  profiles     Profile[]
+  cardRequests CardRequest[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([tier])
+}
+
+model CardMaterial {
+  id           String   @id @default(cuid())
+  name         String
+  slug         String   @unique
+  description  String?
+  tier         Int      @default(0)
+  frontSvg     String
+  backSvg      String
+  unitPrice    Decimal  @db.Decimal(10, 2)
+  bulkPrice50  Decimal? @db.Decimal(10, 2)
+  bulkPrice100 Decimal? @db.Decimal(10, 2)
+  isActive     Boolean  @default(true)
+  sortOrder    Int      @default(0)
+
+  cards        Card[]
+  variants     TemplateVariant[]
+  cardRequests CardRequest[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+}
+
+model TemplateVariant {
+  id         String @id @default(cuid())
+  frontSvg   String
+  backSvg    String
+  thumbnail  String?
+
+  templateId String
+  template   Template     @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  materialId String
+  material   CardMaterial @relation(fields: [materialId], references: [id], onDelete: Cascade)
+
+  cardRequests CardRequest[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([templateId, materialId])
+  @@index([templateId])
+  @@index([materialId])
+}
+
+model Invite {
+  id        String   @id @default(cuid())
+  token     String   @unique @default(cuid())
+  label     String?  // Optional name/label for tracking ("for Ahmed", "batch 2", etc.)
+
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  createdById String
+  createdBy   User   @relation("InviteCreator", fields: [createdById], references: [id])
+
+  usedById  String?
+  usedBy    User?    @relation("InviteUsed", fields: [usedById], references: [id])
+
+  expiresAt DateTime
+  usedAt    DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([companyId])
+  @@index([token])
+}
+
+model Card {
+  id        String     @id @default(cuid())
+  cardType  CardType
+  nfcId     String?    @unique
+  status    CardStatus @default(PENDING)
+  printFile String?
+
+  profileUrl String? // Full URL encoded into the physical NFC/RFID chip
+  qrCodeSvg  String? // QR code SVG string for printing
+
+  materialId String?
+  material   CardMaterial? @relation(fields: [materialId], references: [id])
+
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  orderId String?
+  order   Order?  @relation(fields: [orderId], references: [id])
+
+  cardRequest CardRequest?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([profileId])
+  @@index([orderId])
+  @@index([materialId])
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  totalAmount Decimal     @db.Decimal(10, 2)
+  currency    String      @default("SAR")
+  paymentId   String?
+  status      OrderStatus @default(PENDING)
+  shippingAddr Json
+  trackingNo  String?
+  metadata    Json?       // Wizard input payload for deferred card creation
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  cards        Card[]
+  cardRequests CardRequest[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model CardRequest {
+  id     String            @id @default(cuid())
+  status CardRequestStatus @default(PENDING)
+
+  // Employee's selections
+  materialId String
+  material   CardMaterial @relation(fields: [materialId], references: [id])
+  templateId String
+  template   Template     @relation(fields: [templateId], references: [id])
+  variantId  String
+  variant    TemplateVariant @relation(fields: [variantId], references: [id])
+
+  profileUrl String? // Locked profile URL at time of request
+  qrCodeSvg  String? // QR code SVG string
+
+  // Who requested
+  profileId String  @unique // One request per profile
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Company context (for admin queries)
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  // Linked after admin places the order
+  orderId String?
+  order   Order?  @relation(fields: [orderId], references: [id])
+  cardId  String? @unique
+  card    Card?   @relation(fields: [cardId], references: [id])
+
+  rejectionNote String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId, status])
+  @@index([userId])
+}
