@@ -171,9 +171,9 @@ function MissionVision() {
               />
               <div className="flex items-center gap-3">
                 {[
-                  "/template/materials-base/classic/front.svg",
-                  "/template/materials-base/artisan/front.svg",
-                  "/template/materials-base/prestige/front.svg",
+                  "/neo-cards/materials-base/classic/front.svg",
+                  "/neo-cards/materials-base/artisan/front.svg",
+                  "/neo-cards/materials-base/prestige/front.svg",
                 ].map((src, i) => (
                   <motion.div
                     key={src}

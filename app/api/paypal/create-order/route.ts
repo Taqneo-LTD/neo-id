@@ -114,10 +114,23 @@ export async function POST(req: Request) {
       dbOrderId: order.id,
       free: false,
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("PayPal create-order error:", error);
-    const message =
-      error instanceof Error ? error.message : "Failed to create order";
+    let message = "Failed to create order";
+    if (error instanceof Error) {
+      message = error.message;
+    }
+    // PayPal SDK errors have details in the body property
+    const body = (error as { body?: string })?.body;
+    if (body) {
+      try {
+        const parsed = JSON.parse(body);
+        message = parsed.message || parsed.error_description || message;
+        console.error("PayPal error details:", parsed);
+      } catch {
+        message = body;
+      }
+    }
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

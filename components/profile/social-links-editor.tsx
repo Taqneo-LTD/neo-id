@@ -20,16 +20,31 @@ type SocialLink = {
 
 /**
  * Given a full URL and a platform, strip the known prefix to get the handle.
- * If the URL doesn't start with the prefix, return as-is.
+ * Handles variations: https://, http://, www., and mobile URLs.
  */
 function stripPrefix(url: string, platform: string): string {
   const meta = PLATFORM_META[platform];
   if (!meta) return url;
-  if (url.startsWith(meta.prefix)) return url.slice(meta.prefix.length);
-  // Also handle http variant
-  const httpPrefix = meta.prefix.replace("https://", "http://");
-  if (url.startsWith(httpPrefix)) return url.slice(httpPrefix.length);
-  return url;
+
+  // Strip protocol
+  let cleaned = url.replace(/^https?:\/\//, "");
+  // Strip www.
+  cleaned = cleaned.replace(/^www\./, "");
+
+  // Strip the platform prefix (without protocol)
+  const prefixDomain = meta.prefix.replace(/^https?:\/\//, "");
+  if (cleaned.startsWith(prefixDomain)) {
+    cleaned = cleaned.slice(prefixDomain.length);
+  }
+
+  // Strip trailing slash
+  cleaned = cleaned.replace(/\/$/, "");
+  // Strip leading @ if platform prefix already includes it
+  if (meta.prefix.endsWith("@") && cleaned.startsWith("@")) {
+    cleaned = cleaned.slice(1);
+  }
+
+  return cleaned;
 }
 
 /** Format phone-like input with dashes for display (e.g. 966-XXX-XXX-XXXX) */
@@ -45,8 +60,6 @@ function formatPhoneDisplay(value: string): string {
 function buildUrl(handle: string, platform: string): string {
   const meta = PLATFORM_META[platform];
   if (!meta) return handle;
-  // If user pasted a full URL, keep it
-  if (handle.startsWith("http://") || handle.startsWith("https://")) return handle;
   // For WhatsApp, strip dashes before building URL
   if (platform === "whatsapp") {
     const digits = handle.replace(/\D/g, "");
@@ -81,8 +94,10 @@ export function SocialLinksEditor({
   }
 
   function updateHandle(index: number, rawHandle: string, platform: string) {
+    // Strip full URLs down to just the handle/username
+    const stripped = stripPrefix(rawHandle, platform);
     // Format WhatsApp numbers with dashes for display
-    const handle = platform === "whatsapp" ? formatPhoneDisplay(rawHandle) : rawHandle;
+    const handle = platform === "whatsapp" ? formatPhoneDisplay(stripped) : stripped;
     const updated = links.map((link, i) => {
       if (i !== index) return link;
       return { ...link, url: buildUrl(handle, link.platform) };

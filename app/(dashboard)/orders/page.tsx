@@ -83,7 +83,7 @@ export default async function OrdersPage() {
       nfcId: c.nfcId,
       materialName: c.material?.name ?? "Standard",
       materialSlug: c.material?.slug ?? "classic",
-      materialFrontSvg: c.material?.frontSvg ?? "/template/materials-base/classic/front.svg",
+      materialFrontSvg: c.material?.frontSvg ?? "/neo-cards/materials-base/classic/front.svg",
       profileName: c.profile.name,
       profileSlug: c.profile.slug,
       profileAvatarUrl: c.profile.avatarUrl,

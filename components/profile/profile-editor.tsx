@@ -493,8 +493,9 @@ export function ProfileEditor({
                   id="website"
                   value={website}
                   onChange={(e) => {
-                    setWebsite(e.target.value);
-                    if (websiteError) validateWebsite(e.target.value);
+                    const cleaned = e.target.value.replace(/^https?:\/\//, "");
+                    setWebsite(cleaned);
+                    if (websiteError) validateWebsite(cleaned);
                   }}
                   onBlur={() => validateWebsite(website)}
                   placeholder="yoursite.com"

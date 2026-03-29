@@ -16,9 +16,9 @@ import { cn } from "@/lib/utils";
 /* ── Material card data ─────────────────────────────────── */
 
 const MATERIALS = [
-  { slug: "classic", src: "/template/materials-base/classic/front.svg" },
-  { slug: "prestige", src: "/template/materials-base/prestige/front.svg" },
-  { slug: "artisan", src: "/template/materials-base/artisan/front.svg" },
+  { slug: "classic", src: "/neo-cards/materials-base/classic/front.svg" },
+  { slug: "prestige", src: "/neo-cards/materials-base/prestige/front.svg" },
+  { slug: "artisan", src: "/neo-cards/materials-base/artisan/front.svg" },
 ];
 
 // [defaultX, defaultY, defaultRotate, hoverX, hoverY, hoverRotate, zIndex]

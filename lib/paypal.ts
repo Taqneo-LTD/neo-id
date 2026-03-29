@@ -69,7 +69,8 @@ export function getPayPalClientId(): string {
 }
 
 // ─── Currency ────────────────────────────────────────────
-// PayPal sandbox doesn't support SAR — use USD there, SAR in production.
+// This codebase is SAR-only (Saudi Arabia market).
+// PayPal sandbox doesn't support SAR, so USD is used there for testing.
 
 export function getPayPalCurrency(): string {
   return getMode() === "live" ? "SAR" : "USD";

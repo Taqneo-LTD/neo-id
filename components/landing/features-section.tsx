@@ -204,7 +204,7 @@ function NfcQrBgVisual() {
   return (
     <div className="absolute -right-6 -top-4 w-44 rotate-8 opacity-50 transition-all duration-500 group-hover:opacity-100 group-hover:-rotate-8">
       <Image
-        src="/template/materials-base/prestige/front.svg"
+        src="/neo-cards/materials-base/prestige/front.svg"
         alt=""
         width={1025}
         height={593}

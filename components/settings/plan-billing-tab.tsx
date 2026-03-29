@@ -50,16 +50,18 @@ export type PlanBillingData = {
 const INDIVIDUAL_FEATURES: Record<string, string[]> = {
   FREE: [
     "Up to 3 NEO IDs",
-    "Free card templates",
+    "Free digital NEO ID Designs",
+    "Free physical NEO Card Designs",
+    "Buy cards at full material price",
     "Basic analytics (views)",
-    "Buy physical cards at full price",
     "Community support",
   ],
   PRO: [
     "Unlimited NEO IDs",
-    "All premium templates included",
+    "All NEO ID Designs included",
+    "All NEO Card Designs included",
+    "Buy cards at full material price",
     "Advanced analytics (views, taps, device)",
-    "Buy physical cards at full price",
     "Priority email support",
   ],
 };
@@ -67,26 +69,27 @@ const INDIVIDUAL_FEATURES: Record<string, string[]> = {
 const COMPANY_FEATURES: Record<string, string[]> = {
   STARTUP: [
     "5 NEO ID seats",
-    "All templates included",
-    "Basic analytics",
+    "Free Classic PVC card per seat",
+    "All NEO ID + NEO Card Designs",
+    "Wood/Metal at upgrade price only",
     "Logo + brand colors",
-    "Email support",
+    "Basic analytics",
   ],
   BUSINESS: [
     "25 NEO ID seats",
-    "All templates included",
-    "Advanced analytics",
+    "Free Classic PVC card per seat",
+    "All NEO ID + NEO Card Designs",
+    "Wood/Metal at upgrade price only",
     "Full company branding",
-    "Bulk ordering",
-    "Priority email + chat support",
+    "Bulk ordering + advanced analytics",
   ],
   ENTERPRISE: [
     "Custom seat count",
-    "All templates + custom design",
+    "Free Classic PVC card per seat",
+    "All designs + custom design service",
     "Full analytics suite + export",
     "White-label branding",
-    "Bulk ordering",
-    "Dedicated account manager + phone support",
+    "Dedicated account manager",
   ],
 };
 

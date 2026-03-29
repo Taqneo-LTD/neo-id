@@ -46,9 +46,9 @@ const socials = [
 ];
 
 const materials = [
-  { name: "Classic", src: "/template/materials-base/classic/front.svg" },
-  { name: "Artisan", src: "/template/materials-base/artisan/front.svg" },
-  { name: "Prestige", src: "/template/materials-base/prestige/front.svg" },
+  { name: "Classic", src: "/neo-cards/materials-base/classic/front.svg" },
+  { name: "Artisan", src: "/neo-cards/materials-base/artisan/front.svg" },
+  { name: "Prestige", src: "/neo-cards/materials-base/prestige/front.svg" },
 ];
 
 export function Footer() {

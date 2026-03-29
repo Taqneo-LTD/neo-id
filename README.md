@@ -11,9 +11,9 @@
 </p>
 
 <p align="center">
-  <img src="public/template/materials-base/classic/front.svg" width="180" alt="Classic" />
-  <img src="public/template/materials-base/artisan/front.svg" width="180" alt="Artisan" />
-  <img src="public/template/materials-base/prestige/front.svg" width="180" alt="Prestige" />
+  <img src="public/neo-cards/materials-base/classic/front.svg" width="180" alt="Classic" />
+  <img src="public/neo-cards/materials-base/artisan/front.svg" width="180" alt="Artisan" />
+  <img src="public/neo-cards/materials-base/prestige/front.svg" width="180" alt="Prestige" />
 </p>
 
 ---

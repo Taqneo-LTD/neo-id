@@ -16,22 +16,22 @@ const materials = [
     name: "Classic",
     tier: "Standard",
     price: 45,
-    front: "/template/materials-base/classic/front.svg",
-    back: "/template/materials-base/classic/back.svg",
+    front: "/neo-cards/materials-base/classic/front.svg",
+    back: "/neo-cards/materials-base/classic/back.svg",
   },
   {
     name: "Artisan",
     tier: "Premium",
     price: 95,
-    front: "/template/materials-base/artisan/front.svg",
-    back: "/template/materials-base/artisan/back.svg",
+    front: "/neo-cards/materials-base/artisan/front.svg",
+    back: "/neo-cards/materials-base/artisan/back.svg",
   },
   {
     name: "Prestige",
     tier: "Luxury",
     price: 175,
-    front: "/template/materials-base/prestige/front.svg",
-    back: "/template/materials-base/prestige/back.svg",
+    front: "/neo-cards/materials-base/prestige/front.svg",
+    back: "/neo-cards/materials-base/prestige/back.svg",
   },
 ];
 

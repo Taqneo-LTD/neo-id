@@ -82,8 +82,8 @@ const materials = [
     slug: "classic",
     description: "Full color PVC card with matte/gloss finish",
     tier: 0,
-    frontSvg: "/template/materials-base/classic/front.svg",
-    backSvg: "/template/materials-base/classic/back.svg",
+    frontSvg: "/neo-cards/materials-base/classic/front.svg",
+    backSvg: "/neo-cards/materials-base/classic/back.svg",
     unitPrice: 45,
     bulkPrice50: 35,
     bulkPrice100: 28,
@@ -94,8 +94,8 @@ const materials = [
     slug: "artisan",
     description: "Laser engraved bamboo wood card with UV print and natural finish",
     tier: 1,
-    frontSvg: "/template/materials-base/artisan/front.svg",
-    backSvg: "/template/materials-base/artisan/back.svg",
+    frontSvg: "/neo-cards/materials-base/artisan/front.svg",
+    backSvg: "/neo-cards/materials-base/artisan/back.svg",
     unitPrice: 95,
     bulkPrice50: 80,
     bulkPrice100: 70,
@@ -106,8 +106,8 @@ const materials = [
     slug: "prestige",
     description: "Laser etched stainless steel card with brushed/matte black finish",
     tier: 2,
-    frontSvg: "/template/materials-base/prestige/front.svg",
-    backSvg: "/template/materials-base/prestige/back.svg",
+    frontSvg: "/neo-cards/materials-base/prestige/front.svg",
+    backSvg: "/neo-cards/materials-base/prestige/back.svg",
     unitPrice: 175,
     bulkPrice50: 150,
     bulkPrice100: 130,
@@ -143,14 +143,14 @@ async function main() {
     where: { slug: "prime" },
     update: {
       name: "Prime",
-      thumbnail: "/template/templates-base/prestige/prime/front.svg",
+      thumbnail: "/neo-cards/designs-base/prestige/prime/front.svg",
       designData: { layout: "neo-default" },
       tier: "FREE",
     },
     create: {
       name: "Prime",
       slug: "prime",
-      thumbnail: "/template/templates-base/prestige/prime/front.svg",
+      thumbnail: "/neo-cards/designs-base/prestige/prime/front.svg",
       designData: { layout: "neo-default" },
       tier: "FREE",
     },
@@ -158,7 +158,7 @@ async function main() {
   console.log(`Seeded template: ${prime.name}`);
 
   // 4. Seed template variants (one per material)
-  // Convention: /template/templates-base/{material-slug}/{template-slug}/front.svg
+  // Convention: /neo-cards/designs-base/{material-slug}/{template-slug}/front.svg
   const allMaterials = await prisma.cardMaterial.findMany();
   for (const mat of allMaterials) {
     await prisma.templateVariant.upsert({
@@ -169,14 +169,14 @@ async function main() {
         },
       },
       update: {
-        frontSvg: `/template/templates-base/${mat.slug}/prime/front.svg`,
-        backSvg: `/template/templates-base/${mat.slug}/prime/back.svg`,
+        frontSvg: `/neo-cards/designs-base/${mat.slug}/prime/front.svg`,
+        backSvg: `/neo-cards/designs-base/${mat.slug}/prime/back.svg`,
       },
       create: {
         templateId: prime.id,
         materialId: mat.id,
-        frontSvg: `/template/templates-base/${mat.slug}/prime/front.svg`,
-        backSvg: `/template/templates-base/${mat.slug}/prime/back.svg`,
+        frontSvg: `/neo-cards/designs-base/${mat.slug}/prime/front.svg`,
+        backSvg: `/neo-cards/designs-base/${mat.slug}/prime/back.svg`,
       },
     });
   }

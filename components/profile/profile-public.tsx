@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 import {
   Mail,
   Phone,
@@ -87,7 +88,7 @@ export function ProfilePublic({ profile }: { profile: ProfileData }) {
           {contact && (contact.phone || contact.email) && (
             <>
               <Separator />
-              <div className="grid grid-cols-2 gap-2 p-4">
+              <div className={cn("grid gap-2 p-4", contact.phone && contact.email ? "grid-cols-2" : "grid-cols-1")}>
                 {contact.phone && (
                   <Button variant="outline" asChild className="w-full py-3">
                     <a href={`tel:${contact.phone}`}>
@@ -112,24 +113,24 @@ export function ProfilePublic({ profile }: { profile: ProfileData }) {
           {contact && (contact.website || contact.address) && (
             <>
               <Separator />
-              <div className="space-y-3 p-4">
+              <div className={cn("grid gap-2 p-4", contact.website && contact.address ? "grid-cols-2" : "grid-cols-1")}>
                 {contact.website && (
                   <a
                     href={contact.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                    className="flex items-center gap-2 rounded-md border border-border/50 px-3 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
                   >
-                    <Globe className="size-4 shrink-0" />
+                    <Globe className="size-3.5 shrink-0" />
                     <span className="truncate">
                       {contact.website.replace(/^https?:\/\//, "")}
                     </span>
                   </a>
                 )}
                 {contact.address && (
-                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                    <MapPin className="size-4 shrink-0" />
-                    <span>{contact.address}</span>
+                  <div className="flex items-center gap-2 rounded-md border border-border/50 px-3 py-2 text-sm text-muted-foreground">
+                    <MapPin className="size-3.5 shrink-0" />
+                    <span className="truncate">{contact.address}</span>
                   </div>
                 )}
               </div>
