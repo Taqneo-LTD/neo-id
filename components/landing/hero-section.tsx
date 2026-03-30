@@ -237,7 +237,7 @@ function CardShowcase() {
                     !isActive && "opacity-50 hover:opacity-70",
                   )}
                 >
-                  <div className="[backface-visibility:hidden]">
+                  <div className="backface-hidden">
                     <Image
                       src={mat.front}
                       alt={`${mat.name} card`}
@@ -247,7 +247,7 @@ function CardShowcase() {
                     />
                   </div>
                   <div
-                    className="absolute inset-0 [backface-visibility:hidden]"
+                    className="absolute inset-0 backface-hidden"
                     style={{ transform: "rotateY(180deg)" }}
                   >
                     <Image
@@ -284,10 +284,8 @@ function CardShowcase() {
               setFlipped(false);
             }}
             className={cn(
-              "flex flex-col items-center gap-0.5 rounded-xl px-4 py-2.5 transition-all",
-              i === activeIndex
-                ? "bg-neo-teal/10"
-                : "hover:bg-muted/50",
+              "flex flex-col items-center gap-0.5 rounded-xl px-4 py-2.5 cursor-pointer transition-all",
+              i === activeIndex && "hover:bg-muted/50",
             )}
           >
             <span
