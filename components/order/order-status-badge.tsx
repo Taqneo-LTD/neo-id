@@ -4,10 +4,12 @@ import {
   Clock,
   Loader2,
   PackageCheck,
+  PhoneCall,
   Printer,
   Truck,
   Zap,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { CardStatus, OrderStatus } from "@/types";
 
 const orderStatusConfig: Record<
@@ -16,9 +18,11 @@ const orderStatusConfig: Record<
     label: string;
     variant: "default" | "secondary" | "outline";
     icon: typeof Clock;
+    className?: string;
   }
 > = {
   PENDING: { label: "Pending", variant: "outline", icon: Clock },
+  PENDING_CONTACT: { label: "Awaiting Contact", variant: "outline", icon: PhoneCall, className: "border-amber-500/40 text-amber-500 bg-amber-500/10" },
   PAID: { label: "Paid", variant: "default", icon: CheckCircle2 },
   PROCESSING: { label: "Processing", variant: "secondary", icon: Loader2 },
   SHIPPED: { label: "Shipped", variant: "secondary", icon: Truck },
@@ -44,7 +48,7 @@ export function OrderStatusBadge({ status }: { status: OrderStatus }) {
   const config = orderStatusConfig[status];
   const Icon = config.icon;
   return (
-    <Badge variant={config.variant} className="gap-1 text-xs">
+    <Badge variant={config.variant} className={cn("gap-1 text-xs", config.className)}>
       <Icon className="size-3" />
       {config.label}
     </Badge>

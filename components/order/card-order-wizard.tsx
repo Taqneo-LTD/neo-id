@@ -276,6 +276,7 @@ export function CardOrderWizard({
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [payLater, setPayLater] = useState(false);
 
   const currentStepId = steps[stepIndex].id;
   const isSuccessStep =
@@ -422,6 +423,12 @@ export function CardOrderWizard({
   }
 
   function handlePaymentSuccess() {
+    setDirection(1);
+    setStepIndex((i) => i + 1);
+  }
+
+  function handlePayLaterSuccess() {
+    setPayLater(true);
     setDirection(1);
     setStepIndex((i) => i + 1);
   }
@@ -606,13 +613,14 @@ export function CardOrderWizard({
                     <PaymentStep
                       orderInput={orderInput}
                       onSuccess={handlePaymentSuccess}
+                      onPayLaterSuccess={handlePayLaterSuccess}
                       onError={() => {}}
                     />
                   </PayPalScriptProvider>
                 );
               })()}
               {currentStepId === "success" && (
-                <SuccessStep profileId={profileId} />
+                <SuccessStep profileId={profileId} payLater={payLater} />
               )}
               {currentStepId === "request" && (
                 <RequestStep

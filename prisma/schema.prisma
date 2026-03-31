@@ -38,6 +38,7 @@ enum CardStatus {
 
 enum OrderStatus {
   PENDING
+  PENDING_CONTACT // User requested "Pay Later", admin will follow up
   PAID
   PROCESSING
   SHIPPED

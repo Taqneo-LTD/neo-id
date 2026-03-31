@@ -27,6 +27,7 @@ import {
   MapPin,
   Package,
   Phone,
+  PhoneCall,
   ShoppingBag,
   Truck,
   Wifi,
@@ -77,6 +78,12 @@ export type OrderItem = {
     profileSlug: string;
     profileAvatarUrl: string | null;
     createdAt: string;
+  }[];
+  intendedCards?: {
+    materialName: string;
+    materialFrontSvg: string;
+    profileName: string | null;
+    profileSlug: string;
   }[];
 };
 
@@ -291,9 +298,17 @@ function OrderRow({
 
         {/* Cards count */}
         <TableCell className="hidden py-3 sm:table-cell">
-          <Badge variant="secondary" className="text-xs">
-            {order.cards.length} {order.cards.length === 1 ? "card" : "cards"}
-          </Badge>
+          {order.cards.length > 0 ? (
+            <Badge variant="secondary" className="text-xs">
+              {order.cards.length} {order.cards.length === 1 ? "card" : "cards"}
+            </Badge>
+          ) : order.intendedCards && order.intendedCards.length > 0 ? (
+            <Badge variant="outline" className="border-amber-500/30 text-xs text-amber-500">
+              {order.intendedCards.length} {order.intendedCards.length === 1 ? "card" : "cards"}
+            </Badge>
+          ) : (
+            <Badge variant="secondary" className="text-xs">0 cards</Badge>
+          )}
         </TableCell>
 
         {/* Total */}
@@ -389,8 +404,59 @@ function ExpandedOrderDetails({
       {/* Cards grid */}
       <div>
         <p className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Cards in this order
+          {order.cards.length > 0 ? "Cards in this order" : "Intended order"}
         </p>
+
+        {/* Intended cards for PENDING_CONTACT orders with no cards created yet */}
+        {order.cards.length === 0 && order.intendedCards && order.intendedCards.length > 0 && (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {order.intendedCards.map((item, i) => (
+              <div
+                key={i}
+                className="flex gap-3 rounded-xl border border-amber-500/20 bg-amber-500/[0.03] p-3"
+              >
+                <div className="relative w-24 shrink-0 overflow-hidden rounded-lg">
+                  <Image
+                    src={item.materialFrontSvg}
+                    alt={item.materialName}
+                    width={1025}
+                    height={593}
+                    className="block h-full w-full"
+                  />
+                </div>
+                <div className="flex min-w-0 flex-1 flex-col justify-between">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">
+                      {item.profileName ?? "NEO ID"}
+                    </p>
+                    <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
+                      <span>{item.materialName}</span>
+                      <span className="text-border">&middot;</span>
+                      <Link
+                        href={`/p/${item.profileSlug}`}
+                        className="text-neo-teal hover:underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        /p/{item.profileSlug}
+                      </Link>
+                    </div>
+                  </div>
+                  <div className="mt-1.5">
+                    <Badge variant="outline" className="gap-1 border-amber-500/40 bg-amber-500/10 text-xs text-amber-500">
+                      <PhoneCall className="size-3" />
+                      Awaiting Contact
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {order.cards.length === 0 && (!order.intendedCards || order.intendedCards.length === 0) && (
+          <p className="text-sm text-muted-foreground">No cards in this order yet.</p>
+        )}
+
         <div className="grid gap-3 sm:grid-cols-2">
           {order.cards.map((card) => (
             <div
@@ -492,9 +558,11 @@ function ExpandedOrderDetails({
             <p className="text-sm text-muted-foreground">
               {order.status === "PENDING"
                 ? "Awaiting payment"
-                : order.status === "PAID" || order.status === "PROCESSING"
-                  ? "Will be available once shipped"
-                  : "—"}
+                : order.status === "PENDING_CONTACT"
+                  ? "Our team will contact you"
+                  : order.status === "PAID" || order.status === "PROCESSING"
+                    ? "Will be available once shipped"
+                    : "—"}
             </p>
           )}
         </div>
@@ -511,7 +579,9 @@ function ExpandedOrderDetails({
             </p>
           ) : (
             <p className="text-sm text-muted-foreground">
-              {order.status === "PENDING" ? "Not yet paid" : "—"}
+              {order.status === "PENDING" || order.status === "PENDING_CONTACT"
+                ? "Not yet paid"
+                : "—"}
             </p>
           )}
 
