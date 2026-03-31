@@ -42,6 +42,7 @@ const companyNavItems = [
   { label: "Company", href: "/company", icon: Users },
 ];
 
+
 export function DashboardShell({
   children,
 }: {

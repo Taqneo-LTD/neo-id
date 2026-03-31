@@ -1,7 +1,7 @@
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { ADMIN_EMAIL } from "@/lib/constants";
+import { isAdminEmail } from "@/lib/constants";
 
 export async function getSession() {
   const { getUser, isAuthenticated } = getKindeServerSession();
@@ -36,7 +36,7 @@ export async function ensureUser() {
     [kindeUser.given_name, kindeUser.family_name]
       .filter(Boolean)
       .join(" ") || email;
-  const isAdmin = email === ADMIN_EMAIL;
+  const isAdmin = isAdminEmail(email);
 
   // Check if a user already exists by kindeId
   const existing = await db.user.findUnique({
@@ -117,6 +117,14 @@ export async function requireOnboarded() {
   const user = await ensureUser();
   if (!user.onboarded) {
     redirect("/onboarding");
+  }
+  return user;
+}
+
+export async function requirePlatformAdmin() {
+  const user = await requireOnboarded();
+  if (!isAdminEmail(user.email)) {
+    redirect("/dashboard");
   }
   return user;
 }

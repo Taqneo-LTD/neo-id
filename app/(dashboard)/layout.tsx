@@ -1,5 +1,6 @@
 import { requireOnboarded } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { isAdminEmail } from "@/lib/constants";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { DashboardProvider } from "@/components/providers/dashboard-provider";
 
@@ -9,8 +10,14 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const user = await requireOnboarded();
+  const isPlatformAdmin = isAdminEmail(user.email);
 
-  // Single query: get the first profile's avatar (if any)
+  // Admin gets no DashboardShell wrapping. Admin pages use AdminShell via their own layout.
+  if (isPlatformAdmin) {
+    return <>{children}</>;
+  }
+
+  // Regular user shell
   const firstProfile = await db.profile.findFirst({
     where: { userId: user.id },
     orderBy: { createdAt: "asc" },

@@ -1,4 +1,6 @@
+import { redirect } from "next/navigation";
 import { requireOnboarded } from "@/lib/auth";
+import { isAdminEmail } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { CreditCard, Eye, UserCircle } from "lucide-react";
 import {
@@ -12,6 +14,10 @@ import { PageHeader } from "@/components/shared/page-header";
 
 export default async function DashboardPage() {
   const user = await requireOnboarded();
+
+  if (isAdminEmail(user.email)) {
+    redirect("/admin");
+  }
 
   const [profileCount, totalViews] = await Promise.all([
     db.profile.count({ where: { userId: user.id } }),

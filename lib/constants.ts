@@ -1,7 +1,15 @@
 // ─── Platform Constants ─────────────────────────────────
 
-/** Platform admin email — used for admin role assignment */
-export const ADMIN_EMAIL = "taqneo101@gmail.com";
+/** Platform admin emails — used for admin role assignment */
+export const ADMIN_EMAILS = [
+  "taqneo101@gmail.com",
+  "chnspart@gmail.com",
+] as const;
+
+/** Check if an email belongs to a platform admin */
+export function isAdminEmail(email: string): boolean {
+  return ADMIN_EMAILS.includes(email as typeof ADMIN_EMAILS[number]);
+}
 
 /** Card material slugs (match DB seed) */
 export const MATERIAL_SLUGS = {

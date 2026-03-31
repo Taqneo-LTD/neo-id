@@ -7,7 +7,7 @@ const prisma = new PrismaClient({ adapter });
 
 // ─── Constants ──────────────────────────────────────────
 
-const ADMIN_EMAIL = "taqneo101@gmail.com";
+const ADMIN_EMAILS = ["taqneo101@gmail.com", "chnspart@gmail.com"];
 
 // ─── Plans ──────────────────────────────────────────────
 
@@ -184,18 +184,20 @@ async function main() {
   }
   console.log(`Seeded ${allMaterials.length} template variants for ${prime.name}`);
 
-  // 5. Mark admin user (if already exists from auth flow)
-  const adminUser = await prisma.user.findUnique({
-    where: { email: ADMIN_EMAIL },
-  });
-  if (adminUser) {
-    await prisma.user.update({
-      where: { email: ADMIN_EMAIL },
-      data: { role: "OWNER" },
+  // 5. Mark admin users (if already exist from auth flow)
+  for (const adminEmail of ADMIN_EMAILS) {
+    const adminUser = await prisma.user.findUnique({
+      where: { email: adminEmail },
     });
-    console.log(`Marked ${ADMIN_EMAIL} as OWNER`);
-  } else {
-    console.log(`Admin user (${ADMIN_EMAIL}) not found yet — will be assigned on first login`);
+    if (adminUser) {
+      await prisma.user.update({
+        where: { email: adminEmail },
+        data: { role: "OWNER" },
+      });
+      console.log(`Marked ${adminEmail} as OWNER`);
+    } else {
+      console.log(`Admin user (${adminEmail}) not found yet — will be assigned on first login`);
+    }
   }
 }
 
