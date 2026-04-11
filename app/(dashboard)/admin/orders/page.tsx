@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { OrderStatusBadge } from "@/components/order/order-status-badge";
+import { OrderStatusBadge, FreeServeBadge } from "@/components/order/order-status-badge";
 import { formatDate } from "@/lib/date-format";
 import type { OrderStatus } from "@/types";
 
@@ -20,9 +20,11 @@ const STATUS_TABS: { label: string; value: OrderStatus | "ALL" }[] = [
   { label: "Awaiting Contact", value: "PENDING_CONTACT" },
   { label: "Pending", value: "PENDING" },
   { label: "Paid", value: "PAID" },
+  { label: "Free Serve", value: "FREE_SERVE" },
   { label: "Processing", value: "PROCESSING" },
   { label: "Shipped", value: "SHIPPED" },
   { label: "Delivered", value: "DELIVERED" },
+  { label: "Cancelled", value: "CANCELLED" },
 ];
 
 export default async function AdminOrdersPage({
@@ -39,7 +41,10 @@ export default async function AdminOrdersPage({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const where: any = {};
 
-  if (statusFilter !== "ALL") {
+  if (statusFilter === "FREE_SERVE") {
+    // Special: show ALL orders that were ever free-served, regardless of current status
+    where.isFreeServe = true;
+  } else if (statusFilter !== "ALL") {
     where.status = statusFilter as OrderStatus;
   }
 
@@ -167,7 +172,12 @@ export default async function AdminOrdersPage({
                       <span className="ml-1 text-xs text-muted-foreground">SAR</span>
                     </TableCell>
                     <TableCell className="py-3">
-                      <OrderStatusBadge status={order.status} />
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <OrderStatusBadge status={order.status} />
+                        {order.isFreeServe && order.status !== "FREE_SERVE" && (
+                          <FreeServeBadge />
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="hidden py-3 text-xs text-muted-foreground sm:table-cell">
                       {formatDate(order.createdAt.toISOString())}

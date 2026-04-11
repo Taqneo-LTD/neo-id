@@ -34,15 +34,18 @@ enum CardStatus {
   SHIPPED
   DELIVERED
   ACTIVE
+  CANCELLED
 }
 
 enum OrderStatus {
   PENDING
   PENDING_CONTACT // User requested "Pay Later", admin will follow up
   PAID
+  FREE_SERVE      // Promo/VIP/demo — cards created with no payment
   PROCESSING
   SHIPPED
   DELIVERED
+  CANCELLED       // Terminal state — order cancelled by admin
 }
 
 enum TemplateTier {
@@ -312,9 +315,10 @@ model Order {
   currency    String      @default("SAR")
   paymentId   String?
   status      OrderStatus @default(PENDING)
+  isFreeServe Boolean     @default(false) // Set true when order is marked FREE_SERVE. Never unset.
   shippingAddr Json
-  trackingNo  String?
-  metadata    Json?       // Wizard input payload for deferred card creation
+  trackingNo    String?
+  metadata      Json?          // Wizard input payload for deferred card creation
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -12,13 +12,22 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { OrderStatusBadge, CardStatusBadge } from "@/components/order/order-status-badge";
+import { OrderStatusBadge, CardStatusBadge, FreeServeBadge } from "@/components/order/order-status-badge";
 import { OrderActions } from "@/components/admin/order-actions";
+import {
+  EditTotalDialog,
+  EditShippingDialog,
+  EditTrackingDialog,
+  EditPaymentIdDialog,
+  AdminNotesEditor,
+  CancelOrderDialog,
+  DeleteOrderDialog,
+  ForceStatusDialog,
+} from "@/components/admin/order-edit-dialogs";
 import { formatDate } from "@/lib/date-format";
 import {
   ArrowLeft,
   Globe,
-  MapPin,
   Phone,
   Mail,
   Building2,
@@ -71,6 +80,7 @@ export default async function AdminOrderDetailPage({
 
   const meta = (order.metadata ?? {}) as Record<string, unknown>;
   const statusLog = Array.isArray(meta.statusLog) ? meta.statusLog : [];
+  const adminNotes = (meta.adminNotes as string) ?? "";
 
   // Intended card data for PENDING_CONTACT orders
   let intendedCard: { materialName: string; materialSvg: string; profileName: string | null; profileSlug: string } | null = null;
@@ -118,13 +128,21 @@ export default async function AdminOrderDetailPage({
           <div className="flex items-center gap-3">
             <span className="text-sm text-muted-foreground">Status:</span>
             <OrderStatusBadge status={order.status} />
+            {order.isFreeServe && order.status !== "FREE_SERVE" && (
+              <FreeServeBadge />
+            )}
           </div>
-          <OrderActions orderId={order.id} currentStatus={order.status} />
+          <div className="flex flex-wrap items-center gap-2">
+            <OrderActions orderId={order.id} currentStatus={order.status} />
+            <ForceStatusDialog orderId={order.id} currentStatus={order.status} />
+            <CancelOrderDialog orderId={order.id} currentStatus={order.status} />
+            <DeleteOrderDialog orderId={order.id} currentStatus={order.status} />
+          </div>
         </CardContent>
       </Card>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left column: Customer + Shipping */}
+        {/* Left column: Customer + Shipping + Payment + Notes */}
         <div className="space-y-6 lg:col-span-1">
           {/* Customer */}
           <Card>
@@ -168,8 +186,9 @@ export default async function AdminOrderDetailPage({
 
           {/* Shipping */}
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-sm font-medium">Shipping Address</CardTitle>
+              <EditShippingDialog orderId={order.id} currentAddress={addr} />
             </CardHeader>
             <CardContent className="space-y-1 text-sm">
               <p className="font-medium">{addr.fullName}</p>
@@ -195,23 +214,42 @@ export default async function AdminOrderDetailPage({
             <CardContent className="space-y-3">
               <div>
                 <p className="text-xs text-muted-foreground">Total</p>
-                <p className="text-lg font-bold tabular-nums">
-                  {Number(order.totalAmount).toLocaleString()} <span className="text-sm font-normal text-muted-foreground">SAR</span>
-                </p>
+                <div className="flex items-center gap-1">
+                  <p className="text-lg font-bold tabular-nums">
+                    {Number(order.totalAmount).toLocaleString()} <span className="text-sm font-normal text-muted-foreground">SAR</span>
+                  </p>
+                  <EditTotalDialog orderId={order.id} currentAmount={Number(order.totalAmount)} />
+                </div>
               </div>
               <Separator />
               <div>
                 <p className="text-xs text-muted-foreground">PayPal Payment ID</p>
-                <p className="mt-0.5 break-all font-mono text-xs text-muted-foreground">
-                  {order.paymentId ?? "No payment recorded"}
-                </p>
+                <div className="mt-0.5 flex items-center gap-1">
+                  <p className="break-all font-mono text-xs text-muted-foreground">
+                    {order.paymentId ?? "No payment recorded"}
+                  </p>
+                  <EditPaymentIdDialog orderId={order.id} currentPaymentId={order.paymentId} />
+                </div>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Tracking Number</p>
-                <p className="mt-0.5 font-mono text-sm">
-                  {order.trackingNo ?? "Not yet assigned"}
-                </p>
+                <div className="mt-0.5 flex items-center gap-1">
+                  <p className="font-mono text-sm">
+                    {order.trackingNo ?? "Not yet assigned"}
+                  </p>
+                  <EditTrackingDialog orderId={order.id} currentTracking={order.trackingNo} />
+                </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Admin Notes */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium">Admin Notes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AdminNotesEditor orderId={order.id} currentNotes={adminNotes} />
             </CardContent>
           </Card>
         </div>
@@ -329,21 +367,14 @@ export default async function AdminOrderDetailPage({
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {(statusLog as { from: string; to: string; by: string; at: string; vendorNotes?: string }[]).map(
+                  {(statusLog as { from?: string; to?: string; by: string; at: string; action?: string; reason?: string; vendorNotes?: string; trackingNo?: string }[]).map(
                     (entry, i) => (
                       <div
                         key={i}
                         className="flex items-start gap-3 rounded-lg border border-border/50 px-3 py-2 text-xs"
                       >
                         <div className="flex-1">
-                          <span className="text-muted-foreground">{entry.from}</span>
-                          <span className="mx-1.5 text-muted-foreground/50">&rarr;</span>
-                          <span className="font-medium">{entry.to}</span>
-                          {entry.vendorNotes && (
-                            <p className="mt-1 text-muted-foreground">
-                              Note: {entry.vendorNotes}
-                            </p>
-                          )}
+                          <AuditEntryContent entry={entry} />
                         </div>
                         <span className="shrink-0 text-muted-foreground">
                           {formatDate(entry.at)}
@@ -359,4 +390,82 @@ export default async function AdminOrderDetailPage({
       </div>
     </div>
   );
+}
+
+// ─── Audit entry rendering ───────────────────────────────
+
+function AuditEntryContent({
+  entry,
+}: {
+  entry: { from?: string; to?: string; by: string; action?: string; reason?: string; vendorNotes?: string; trackingNo?: string };
+}) {
+  const { action, from, to, reason, vendorNotes, trackingNo } = entry;
+
+  switch (action) {
+    case "editTotal":
+      return (
+        <p>
+          <span className="font-medium">Total adjusted:</span>{" "}
+          <span className="text-muted-foreground">{from} SAR</span>
+          <span className="mx-1.5 text-muted-foreground/50">&rarr;</span>
+          <span className="font-medium">{to} SAR</span>
+        </p>
+      );
+    case "editShipping":
+      return <p className="font-medium">Shipping address updated</p>;
+    case "editTracking":
+      return (
+        <p>
+          <span className="font-medium">Tracking:</span>{" "}
+          <span className="text-muted-foreground">{from || "none"}</span>
+          <span className="mx-1.5 text-muted-foreground/50">&rarr;</span>
+          <span className="font-mono font-medium">{to || "cleared"}</span>
+        </p>
+      );
+    case "editPaymentId":
+      return (
+        <p>
+          <span className="font-medium">Payment ID:</span>{" "}
+          <span className="text-muted-foreground">{from || "none"}</span>
+          <span className="mx-1.5 text-muted-foreground/50">&rarr;</span>
+          <span className="font-mono font-medium">{to || "cleared"}</span>
+        </p>
+      );
+    case "cancel":
+      return (
+        <p>
+          <span className="font-medium text-red-500">Order cancelled</span>
+          <span className="ml-1 text-muted-foreground">from {from}</span>
+        </p>
+      );
+    case "forceOverride":
+      return (
+        <div>
+          <p>
+            <span className="font-medium text-amber-500">Force override:</span>{" "}
+            <span className="text-muted-foreground">{from}</span>
+            <span className="mx-1.5 text-muted-foreground/50">&rarr;</span>
+            <span className="font-medium">{to}</span>
+          </p>
+          {reason && (
+            <p className="mt-1 text-muted-foreground">Reason: {reason}</p>
+          )}
+        </div>
+      );
+    default:
+      // Standard status transition
+      return (
+        <div>
+          <span className="text-muted-foreground">{from}</span>
+          <span className="mx-1.5 text-muted-foreground/50">&rarr;</span>
+          <span className="font-medium">{to}</span>
+          {vendorNotes && (
+            <p className="mt-1 text-muted-foreground">Note: {vendorNotes}</p>
+          )}
+          {trackingNo && (
+            <p className="mt-1 text-muted-foreground">Tracking: {trackingNo}</p>
+          )}
+        </div>
+      );
+  }
 }

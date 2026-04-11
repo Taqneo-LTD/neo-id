@@ -63,9 +63,11 @@ export default async function AdminPage() {
     "PENDING",
     "PENDING_CONTACT",
     "PAID",
+    "FREE_SERVE",
     "PROCESSING",
     "SHIPPED",
     "DELIVERED",
+    "CANCELLED",
   ];
 
   return (
