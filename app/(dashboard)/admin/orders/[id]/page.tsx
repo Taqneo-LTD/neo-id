@@ -272,13 +272,13 @@ export default async function AdminOrderDetailPage({
                       key={card.id}
                       className="flex gap-4 rounded-lg border p-4"
                     >
-                      <div className="w-28 shrink-0 overflow-hidden rounded-lg">
+                      <div className="w-32 shrink-0 rounded-lg">
                         <Image
                           src={card.material?.frontSvg ?? "/neo-cards/materials-base/classic/front.svg"}
                           alt={card.material?.name ?? "Card"}
                           width={1025}
                           height={593}
-                          className="block h-auto w-full"
+                          className="block h-auto w-full rounded-lg"
                         />
                       </div>
                       <div className="flex-1 space-y-2">
@@ -323,13 +323,13 @@ export default async function AdminOrderDetailPage({
               {/* Intended card for PENDING_CONTACT */}
               {order.cards.length === 0 && intendedCard && (
                 <div className="flex gap-4 rounded-lg border border-amber-500/20 bg-amber-500/[0.02] p-4">
-                  <div className="w-28 shrink-0 overflow-hidden rounded-lg">
+                  <div className="w-32 shrink-0 rounded-lg">
                     <Image
                       src={intendedCard.materialSvg}
                       alt={intendedCard.materialName}
                       width={1025}
                       height={593}
-                      className="block h-auto w-full"
+                      className="block h-auto w-full rounded-lg"
                     />
                   </div>
                   <div className="flex-1 space-y-2">

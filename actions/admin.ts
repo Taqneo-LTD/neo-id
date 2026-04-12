@@ -509,3 +509,169 @@ export async function forceOrderStatus(
   revalidateOrderPaths(orderId);
   return { success: true };
 }
+
+// ═══════════════════════════════════════════════════════════
+// USER CRUD
+// ═══════════════════════════════════════════════════════════
+
+function revalidateUserPaths(userId: string) {
+  revalidatePath(`/admin/users/${userId}`);
+  revalidatePath("/admin/users");
+  revalidatePath("/admin");
+}
+
+export async function updateUser(
+  userId: string,
+  data: { name?: string; nameAr?: string; email?: string; phone?: string },
+) {
+  await requirePlatformAdmin();
+
+  const user = await db.user.findUnique({ where: { id: userId } });
+  if (!user) return { error: "User not found" };
+
+  if (data.email && data.email !== user.email) {
+    const existing = await db.user.findUnique({ where: { email: data.email } });
+    if (existing) return { error: "Email already in use by another user" };
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const updateData: Record<string, any> = {};
+  if (data.name !== undefined) updateData.name = data.name;
+  if (data.nameAr !== undefined) updateData.nameAr = data.nameAr || null;
+  if (data.email !== undefined) updateData.email = data.email;
+  if (data.phone !== undefined) updateData.phone = data.phone || null;
+
+  if (Object.keys(updateData).length === 0) return { success: true };
+
+  await db.user.update({ where: { id: userId }, data: updateData });
+  revalidateUserPaths(userId);
+  return { success: true };
+}
+
+export async function changeUserRole(
+  userId: string,
+  role: "OWNER" | "ADMIN" | "MEMBER",
+) {
+  await requirePlatformAdmin();
+  const user = await db.user.findUnique({ where: { id: userId } });
+  if (!user) return { error: "User not found" };
+
+  await db.user.update({ where: { id: userId }, data: { role } });
+  revalidateUserPaths(userId);
+  return { success: true };
+}
+
+export async function assignUserPlan(userId: string, planId: string | null) {
+  await requirePlatformAdmin();
+  const user = await db.user.findUnique({ where: { id: userId } });
+  if (!user) return { error: "User not found" };
+
+  if (planId) {
+    const plan = await db.plan.findUnique({ where: { id: planId } });
+    if (!plan) return { error: "Plan not found" };
+  }
+
+  await db.user.update({ where: { id: userId }, data: { planId: planId || null } });
+  revalidateUserPaths(userId);
+  return { success: true };
+}
+
+export async function deleteUser(userId: string) {
+  await requirePlatformAdmin();
+  const user = await db.user.findUnique({ where: { id: userId } });
+  if (!user) return { error: "User not found" };
+
+  await db.user.delete({ where: { id: userId } });
+  revalidatePath("/admin/users");
+  revalidatePath("/admin");
+  redirect("/admin/users");
+}
+
+// ═══════════════════════════════════════════════════════════
+// COMPANY CRUD
+// ═══════════════════════════════════════════════════════════
+
+export async function updateCompany(
+  companyId: string,
+  data: { nameEn?: string; nameAr?: string; crNumber?: string; website?: string },
+) {
+  await requirePlatformAdmin();
+  const company = await db.company.findUnique({ where: { id: companyId } });
+  if (!company) return { error: "Company not found" };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const updateData: Record<string, any> = {};
+  if (data.nameEn !== undefined) updateData.nameEn = data.nameEn;
+  if (data.nameAr !== undefined) updateData.nameAr = data.nameAr || null;
+  if (data.crNumber !== undefined) updateData.crNumber = data.crNumber || null;
+  if (data.website !== undefined) updateData.website = data.website || null;
+
+  if (Object.keys(updateData).length === 0) return { success: true };
+
+  await db.company.update({ where: { id: companyId }, data: updateData });
+  revalidatePath("/admin/users");
+  return { success: true };
+}
+
+export async function assignCompanyPlan(companyId: string, planId: string | null) {
+  await requirePlatformAdmin();
+  const company = await db.company.findUnique({ where: { id: companyId } });
+  if (!company) return { error: "Company not found" };
+
+  if (planId) {
+    const plan = await db.plan.findUnique({ where: { id: planId } });
+    if (!plan) return { error: "Plan not found" };
+    await db.company.update({ where: { id: companyId }, data: { planId, maxSeats: plan.maxSeats } });
+  } else {
+    await db.company.update({ where: { id: companyId }, data: { planId: null } });
+  }
+
+  revalidatePath("/admin/users");
+  revalidatePath("/admin");
+  return { success: true };
+}
+
+export async function overrideCompanySeats(companyId: string, maxSeats: number) {
+  await requirePlatformAdmin();
+  if (maxSeats < 1) return { error: "Seats must be at least 1" };
+
+  const company = await db.company.findUnique({ where: { id: companyId } });
+  if (!company) return { error: "Company not found" };
+
+  await db.company.update({ where: { id: companyId }, data: { maxSeats } });
+  revalidatePath("/admin/users");
+  revalidatePath("/admin");
+  return { success: true };
+}
+
+export async function removeEmployee(userId: string, companyId: string) {
+  await requirePlatformAdmin();
+  const user = await db.user.findUnique({ where: { id: userId } });
+  if (!user) return { error: "User not found" };
+  if (user.companyId !== companyId) return { error: "User is not in this company" };
+
+  await db.user.update({
+    where: { id: userId },
+    data: { companyId: null, accountType: "INDIVIDUAL", role: "MEMBER" },
+  });
+  revalidateUserPaths(userId);
+  return { success: true };
+}
+
+export async function deleteCompany(companyId: string) {
+  await requirePlatformAdmin();
+  const company = await db.company.findUnique({ where: { id: companyId } });
+  if (!company) return { error: "Company not found" };
+
+  await db.$transaction(async (tx) => {
+    await tx.user.updateMany({
+      where: { companyId },
+      data: { companyId: null, accountType: "INDIVIDUAL", role: "MEMBER" },
+    });
+    await tx.company.delete({ where: { id: companyId } });
+  });
+
+  revalidatePath("/admin/users");
+  revalidatePath("/admin");
+  return { success: true };
+}

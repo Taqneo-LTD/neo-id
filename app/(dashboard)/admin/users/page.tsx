@@ -193,8 +193,8 @@ export default async function AdminUsersPage({
                 return (
                   <TableRow key={u.id} className="group">
                     <TableCell className="py-3">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">
+                      <Link href={`/admin/users/${u.id}`} className="block min-w-0">
+                        <p className="truncate text-sm font-medium transition-colors group-hover:text-amber-500">
                           {u.name}
                         </p>
                         <p className="truncate text-xs text-muted-foreground">
@@ -209,7 +209,7 @@ export default async function AdminUsersPage({
                             </span>
                           </div>
                         )}
-                      </div>
+                      </Link>
                     </TableCell>
 
                     <TableCell className="hidden py-3 sm:table-cell">
